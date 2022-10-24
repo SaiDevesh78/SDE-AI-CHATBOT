@@ -1,4 +1,3 @@
-from os import environ
 import pymongo
 import json
 import requests
@@ -32,9 +31,9 @@ with Progress() as progress:
     End = progress.add_task("[cyan]Getting Database...", total=1000)
 
     while not progress.finished:
-        progress.update(Start, advance=1.6)
-        progress.update(Mid, advance=1.4)
-        progress.update(End, advance=1.5)
+        progress.update(Start, advance=2.3)
+        progress.update(Mid, advance=2.1)
+        progress.update(End, advance=2.2)
         sleep(0.02)
 
         
@@ -90,7 +89,7 @@ def Geo_location_IP():
 def Phone_number_check(Phone_number):
     response = requests.get(f"https://phonevalidation.abstractapi.com/v1/?api_key={str(Phone_check_api_key)}={Phone_number}")
     global checked_phone_number
-    checked_phone_number = response.content
+    checked_phone_number = str(response.content).replace(",",",\n")
 
 
 def New_user():
@@ -103,12 +102,16 @@ def New_user():
     
     _id = f"User {counter}"
     Name = input("[+]Whats your name?: ")
+    
+    print("Whats your gender?")
+    sleep(1)
     questions = [
     inquirer.List(
-        "Gender",
-        message= "Whats your gender?",
+        "gender",
+        message="whats your gender?",
         choices= ["Male", "Female", "Transgender", "Non-binary/non-conforming", "Prefer not to respond"],),]
     Gender = str(inquirer.prompt(questions))
+    
     DOB = input("[+]Whats your Date of Birth(add a / after year, month and day)?: ")
     Phone_Number = int(input("[+]Whats your phone number?: "))
     Phone_Number = "+91"+str(Phone_Number)
@@ -138,7 +141,7 @@ def New_user():
                         "Public IP":public_ip
 }
 }
-    while 1:
+    while True:
         table = Table(title="Your Info")
 
         table.add_column("No.", justify="center", style="cyan")
@@ -154,21 +157,53 @@ def New_user():
         console = Console()
         console.print(table)
         
-        new_user_data_correct_or_not = input("Is the above give information right?(y/n): ").lower
-        if new_user_data_correct_or_not == "y":
+        data_correct_or_not = input("Is the above give information right?(y/n): ")
+        if data_correct_or_not == "y":
             break
-        else:
+        
+        elif data_correct_or_not == "n":
             wrong_data = int(input("Which one of them is the wrong one(plese enter just the number): "))
             if wrong_data == 1:
-                wrong_fix = input("Plese re-enter the right Name: ")
+                wrong_fix = input("Plese enter the right Name: ")
                 new_userdata["Name"] = wrong_fix
+                Name = wrong_fix
+                
+            elif wrong_data == 2:
+                print("Plese re-select your correct gender?")
+                sleep(1)
+                questions = [
+                inquirer.List(
+                    "gender",
+                    message="whats your gender?",
+                    choices= ["Male", "Female", "Transgender", "Non-binary/non-conforming", "Prefer not to respond"],),]
+                wrong_fix = str(inquirer.prompt(questions))
+                new_userdata["Gender"] = wrong_fix
+                Gender = wrong_fix
+                
+            elif wrong_data == 3:
+                wrong_fix = input("Plese re-enter the DOB: ")
+                new_userdata["DOB"] = wrong_fix
+                DOB = wrong_fix
+                   
+            elif wrong_data == 4:
+                Phone_Number = int(input("Plese re-enter the right phone number?: "))
+                Phone_Number = "+91"+str(Phone_Number)
+                Phone_number_check(Phone_Number)
+                new_userdata["Phone Number"] = checked_phone_number
+                
+            elif wrong_data == 5:
+                Email = input("Plese re-enter your email: ")
+                Email_check(Email)
+                new_userdata["Email"] = checked_email
+                
+    console = Console()
+    tasks = ["Name","Gender","DOB","Phone number","Email"]
+    with console.status("[bold green]Uploading Data to the Database...") as status:
+        while tasks:
+            task = tasks.pop(0)
+            sleep(1)
+            console.log(f"{task} Uploaded")
 
+    user_data.insert_one(new_userdata)  
+    
 New_user()
-
-console = Console()
-tasks = ["Name","Gender","DOB","Address","Phone number","Email","System information"]
-with console.status("[bold green]Uploading Data to the Database...") as status:
-    while tasks:
-        task = tasks.pop(0)
-        sleep(1)
-        console.log(f"{task} Uploaded")
