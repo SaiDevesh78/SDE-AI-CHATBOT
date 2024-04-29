@@ -107,13 +107,15 @@ def Geo_location_IP():
 
 def Phone_number_check(Phone_number):
     while 1:
-        Phone_number_count = len(str(Phone_Number))
+        Phone_number_count = len(str(Phone_number))
         if Phone_number_count == 10:
             break
         else:
-            Phone_Number = int(console.input("[bold red][-][/bold red]That number seems to have more/less numbers than usual re-enter a valid one: "))
+            Phone_number = int(console.input("[bold red][-][/bold red]That number seems to have more/less numbers than usual re-enter a valid one: "))
     response = requests.get(f"https://phonevalidation.abstractapi.com/v1/?api_key={str(Phone_check_api_key)}={Phone_number}")
     global checked_phone_number
+    global show_number
+    show_number = str(Phone_number)
     checked_phone_number = str(response.content).replace(",",",\n")
 
 
@@ -179,7 +181,7 @@ def New_user():
         table.add_row("2", "Password", Password)
         table.add_row("3", "Gender", Gender)
         table.add_row("4", "Date of Birth", DOB)
-        table.add_row("5", "Phone Number", Phone_Number)
+        table.add_row("5", "Phone Number", show_number)
         table.add_row("6", "Email", Email)
 
         console = Console()
@@ -279,7 +281,7 @@ def User_not_found():
     elif new_old_user in ['y', 'Y']:
         New_user()
         
-
+        
 Computer_information()
 counter = 0
 
