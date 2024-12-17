@@ -7,10 +7,16 @@ import inquirer
 import pyfiglet
 import os
 import pyttsx3
+import shutil
+import calendar
+import time
 #import speech_recognition as sr
-#import datetime
 import getpass
+from datetime import datetime
+from datetime import date
+from pytz import timezone
 from python_email_validation import AbstractEmailValidation
+from tempmail import EMail
 from decouple import config
 from requests import get
 from time import sleep
@@ -19,16 +25,19 @@ from rich.console import Console
 from rich import print
 from rich.table import Table
 
+
 Database_pass = config('DATABASE')
 Email_check_api_key= config('EMAIL_CHECK_API_KEY')
 Ip_geo_api_key = config('IP_GEO_API_KEY')
 Phone_check_api_key = config('PHONE_CHECK_API_KEY')
 Bot_name = "SDE AI ALPHA BOT"
 
+
 engine = pyttsx3.init()
 voices = engine.getProperty('voices')
 print(voices[1].id)
 engine.setProperty('voice',voices[0].id)
+
 
 client = pymongo.MongoClient(f"mongodb+srv://SDE-AI-Chat_Bot:{str(Database_pass)}@chat-bot-database.o5sj3pv.mongodb.net/?retryWrites=true&w=majority")
 mydb = client["User-Database"]
@@ -37,7 +46,21 @@ user_data = mydb["user-information"]
 commands_data = mydb1["commands-information"]
 console = Console()
 
+date1 = date.today()
+time1 = time
+time_current = time1.strftime("%H:%M")
+tzinfo = datetime.now(timezone("Asia/Kolkata"))
+date_month = date.today().month
+date_year = date.today().year
+calen = calendar.TextCalendar(calendar.MONDAY)
+calenform = calen.formatmonth(date_year, date_month)
+hour = datetime.now().hour
+minute = datetime.now().minute
+file_name = "TODO_list_data.txt"
+
+
 os.system('cls')
+
 
 '''with Progress() as progress:
 
@@ -51,11 +74,16 @@ os.system('cls')
         progress.update(End, advance=2.8)
         sleep(0.02)
 '''
+
+
+os.system('cls')
+columns = shutil.get_terminal_size().columns
+ASCII_art_1 = pyfiglet.figlet_format(Bot_name,font="bubble")
+console.print(f"[bold cyan]{ASCII_art_1}[/bold cyan]".center(columns))
+sleep(1.5)
 os.system('cls')
 
-ASCII_art_1 = pyfiglet.figlet_format(Bot_name,font="bubble")
-console.print(f"[bold cyan]{ASCII_art_1}[/bold cyan]")
-print()
+
 def Computer_information():
     hostname = socket.gethostname()
     IPAddr = socket.gethostbyname(hostname)
@@ -294,3 +322,174 @@ for x in user_data.find({},{"_id":1 , "IP":1, "System Information":{"Hostname":1
         break
     elif list(Info_dict) not in list(x):
         User_not_found()
+
+def start():
+    counter = 0
+    User_info_dict = {}
+
+
+    for y in user_data.find({},{"_id":1, "IP":1, "Name":1, "Gender":1, "DOB":1, "System Information":{"Hostname":1}}):
+        counter = counter+1
+        counter1 = f"User {counter}"
+        if counter1 == User_number:
+            User_info_dict = y
+            break
+
+    Name = User_info_dict.get("Name")
+    Gender = User_info_dict.get("Gender")
+    DOB = User_info_dict.get("DOB")
+
+    if Gender == "{'gender': 'Male'}":
+        Salutation = ["Sir", "Master"]
+    elif Gender == "{'gender': 'Female'}":
+        Salutation = ["Madem", "Miss"]
+    else:
+        Salutation = [""]
+
+    console.print(f"[bold cyan]Welcome back {Salutation[1]} {Name}[/bold cyan]".center(columns))
+
+    page_selector = [
+        inquirer.List(
+            "page_selector",
+            message="Go to: ",
+            choices= ["Calender", "TODO list", "Calculator", "Web Browser(Peronsalised)", "Temp-Email", "Whatsapp", "Games", "Chatbot"],),]
+
+    page = str(inquirer.prompt(page_selector))
+    
+    if page == "{'page_selector': 'Calender'}":
+        calender()
+    elif page == "{'page_selector': 'TODO list'}":
+        todo()
+    elif page == "{'page_selector': 'Calculator'}":
+        calculator()
+    '''elif page == "{'page_selector': 'Web Browser(Peronsalised)'}":
+        
+    elif page == "{'page_selector': 'Whatsapp'}":
+    
+    elif page == "{'page_selector': 'Games'}":
+        
+    elif page == "{'page_selector': 'Chatbot'}":'''
+
+    os.system('cls')
+
+def calender():
+    print(calenform)
+    todo_selector = [
+    inquirer.List(
+        "Todo_list",
+        message="You would like to view",
+        choices= ["your calender for a specific year", "your calender for a specific month", "your calender for a specific year and month"],),]
+    todo_option = str(inquirer.prompt(todo_selector))
+    print()
+
+    if todo_option == "{'Todo_list': 'your calender for a specific year'}":
+        calender_view_spesfic = int(input("For which year do you want the calender(Give in numbers): "))
+        print()
+        print(calen.formatyear(calender_view_spesfic))
+        print()
+
+    elif todo_option == "{'Todo_list': 'your calender for a specific year'}":
+        calender_view_spesfic = int(input("For which month do you want the calender(Give in numbers): "))
+        print()
+        print(calen.formatmonth(date_year, calender_view_spesfic))
+        print()
+
+    elif todo_option == "{'Todo_list': 'your calender for a specific year and month'}":
+        calender_view_spesficc3 = int(input("For which year do you want the calender(Give in numbers): "))
+        print()
+        calender_view_spesficc4 = int(input("For which month do you want the calender(Give in numbers): "))
+        print()
+        print(calen.formatmonth(calender_view_spesficc3,calender_view_spesficc4))
+        print()
+        
+def todo():
+    todo_selector = [
+        inquirer.List(
+            "Todo_list",
+            message="You would like to",
+            choices= ["View your TODO list", "Add items to your TODO list", "Remove an iteam from your TODO list which you have compleated"],),]
+
+    todo_option = str(inquirer.prompt(todo_selector))
+    print(todo_option)
+    if todo_option == "{'Todo_list': 'View your TODO list'}":
+        while True:
+            file = open(file_name, "a")
+            TODO_list_name = input("What is the TODO name: ")
+            file.write(TODO_list_name+"\n")
+            file.close()
+            print()
+            print("Your event was sucssesfuly added")
+            print()
+            add_more_iteams = input("Do you want to add more items to your TODO?(1 = y/2 = n): ")
+            print()
+            if add_more_iteams == 2:
+                break
+        
+    elif todo_option == "{'Todo_list': 'Add items to your TODO list'}":
+        file1 = open(file_name, "r")
+        print(file1.read())
+        file1.close
+    
+    elif todo_option == "{'Todo_list': 'Remove an iteam from your TODO list which you have compleated'}":
+        lines = open(file_name, "r")
+        remove_iteam = input("What is the item you want to remove: ")
+        print()
+        with open(file_name, "r") as f:
+            lines = f.readlines()
+        with open(file_name, "w") as f:
+            for line in lines:
+                if remove_iteam != line.strip():
+                    f.write(line)
+        print()
+        print(f"{remove_iteam} was Ticked")
+    print()
+
+def calculator():
+    number_input_data = []
+    print()
+    number_input_1 = int(input("Give me the number you want to calculate: "))
+    operation_input_1 = input("What operation do you want to perform(+,-,*,/): ")
+    number_input_2 = int(input("Give me the other number you want to calculate: "))
+    
+    if operation_input_1 == "+":
+        sum1 = number_input_1+number_input_2
+        number_input_data.append(sum1)
+    elif operation_input_1 == "-":
+        sub1 = number_input_1-number_input_2
+        number_input_data.append(sub1)
+    elif operation_input_1 == "*":
+        mul1 = number_input_1*number_input_2
+        number_input_data.append(mul1)
+    elif operation_input_1 == "/":
+        div1 = number_input_1/number_input_2
+        number_input_data.append(div1)
+
+    while True:
+        add_numbers_input = int(input("Do you want to add more numbers(1 = y/2 = n): "))
+        if add_numbers_input == 1:
+            operation_input_1 = input("What operation do you want to perform(+,-,*,/): ")
+            number_input_1 = int(input("Give me the other number you want to calculate"))
+            if operation_input_1 == "+":
+                number_input_data.append(number_input_1)
+                sum1 = sum(number_input_data)
+                number_input_data.clear()
+                number_input_data.append(sum1)
+            elif operation_input_1 == "-":
+                sub1 = number_input_data[0]-number_input_1
+                number_input_data.clear()
+                number_input_data.append(sub1)
+            elif operation_input_1 == "*":
+                mul1 = number_input_data[0]*number_input_1
+                number_input_data.clear()
+                number_input_data.append(mul1)
+            elif operation_input_1 == "/":
+                div1 = number_input_data[0]/number_input_1
+                number_input_data.clear()
+                number_input_data.append(div1)
+        
+        elif add_numbers_input == 2:
+            print(f"Your answer is {number_input_data}")
+            break
+    print()
+    
+start()
